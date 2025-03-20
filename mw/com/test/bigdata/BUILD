@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
 load("//platform/aas/bazel/packaging:adaptive_application.bzl", "pkg_adaptive_application")
 load("//platform/aas/mw:common_features.bzl", "COMPILER_WARNING_FEATURES")
 
@@ -29,6 +30,49 @@ cc_binary(
         "//platform/aas/mw/com/test/common_test_resources:assert_handler",
         "//platform/aas/mw/com/test/common_test_resources:sample_sender_receiver",
         "//platform/aas/mw/com/test/common_test_resources:sctf_test_runner",
+    ],
+)
+
+cc_library(
+    name = "bigdata_gen_cpp",
+    srcs = ["bigdata_gen.cpp"],
+    features = COMPILER_WARNING_FEATURES,
+    deps = [
+        "//platform/aas/mw/com/test/common_test_resources:bigdata_type",
+    ],
+)
+
+rust_library(
+    name = "bigdata_gen_rs",
+    srcs = ["bigdata_gen.rs"],
+    deps = [
+        ":bigdata_gen_cpp",
+        "//platform/aas/mw/com/impl/plumbing:sample_ptr_rs",
+        "//platform/aas/mw/com/impl/rust:proxy_bridge_rs",
+        "@crate_index//:libc",
+    ],
+)
+
+rust_binary(
+    name = "bigdata_rs",
+    srcs = ["bigdata.rs"],
+    data = ["mw_com_config.json"],
+    features = ["link_std_cpp_lib"],
+    deps = [
+        ":bigdata_gen_rs",
+        "//platform/aas/mw/com/impl/rust:proxy_bridge_rs",
+        "@crate_index//:futures",
+    ],
+)
+
+rust_binary(
+    name = "bigdata_skeleton_rs",
+    srcs = ["bigdata_skeleton.rs"],
+    data = ["mw_com_config.json"],
+    features = ["link_std_cpp_lib"],
+    deps = [
+        ":bigdata_gen_rs",
+        "//platform/aas/mw/com/impl/rust:proxy_bridge_rs",
     ],
 )
 
